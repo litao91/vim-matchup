@@ -12,76 +12,11 @@ set cpo&vim
 function! matchup#init() abort
   call matchup#perf#tic('loading')
 
-  call s:init_options()
+  call luaeval('require"matchup".init_options()')
   call s:init_modules()
   call s:init_default_mappings()
 
   call matchup#perf#toc('loading', 'init_done')
-endfunction
-
-function! s:init_options()
-  call s:init_option('matchup_matchparen_enabled',
-        \ !(&t_Co < 8 && !has('gui_running')))
-  let l:offs = {'method': 'status'}
-  if !get(g:, 'matchup_matchparen_status_offscreen', 1)
-    let l:offs = {}
-  endif
-  if get(g:, 'matchup_matchparen_status_offscreen_manual', 0)
-    let l:offs.method = 'status_manual'
-  endif
-  if exists('g:matchup_matchparen_scrolloff')
-    let l:offs.scrolloff = g:matchup_matchparen_scrolloff
-  endif
-  call s:init_option('matchup_matchparen_offscreen', l:offs)
-  call s:init_option('matchup_matchparen_singleton', 0)
-  call s:init_option('matchup_matchparen_deferred', 0)
-  call s:init_option('matchup_matchparen_deferred_show_delay', 50)
-  call s:init_option('matchup_matchparen_deferred_hide_delay', 700)
-  call s:init_option('matchup_matchparen_deferred_fade_time', 0)
-  call s:init_option('matchup_matchparen_stopline', 400)
-  call s:init_option('matchup_matchparen_pumvisible', 1)
-  call s:init_option('matchup_matchparen_nomode', '')
-  call s:init_option('matchup_matchparen_hi_surround_always', 0)
-  call s:init_option('matchup_matchparen_hi_background', 0)
-  call s:init_option('matchup_matchparen_start_sign', '▶')
-  call s:init_option('matchup_matchparen_end_sign', '◀')
-
-  call s:init_option('matchup_matchparen_timeout',
-        \ get(g:, 'matchparen_timeout', 300))
-  call s:init_option('matchup_matchparen_insert_timeout',
-        \ get(g:, 'matchparen_insert_timeout', 60))
-
-  call s:init_option('matchup_delim_count_fail', 0)
-  call s:init_option('matchup_delim_count_max', 8)
-  call s:init_option('matchup_delim_start_plaintext', 1)
-  call s:init_option('matchup_delim_noskips', 0)
-  call s:init_option('matchup_delim_nomids', 0)
-
-  call s:init_option('matchup_motion_enabled', 1)
-  call s:init_option('matchup_motion_cursor_end', 1)
-  call s:init_option('matchup_motion_override_Npercent', 6)
-  call s:init_option('matchup_motion_keepjumps', 0)
-
-  call s:init_option('matchup_text_obj_enabled', 1)
-  call s:init_option('matchup_text_obj_linewise_operators', ['d', 'y'])
-
-  call s:init_option('matchup_transmute_enabled', 0)
-  call s:init_option('matchup_transmute_breakundo', 0)
-
-  call s:init_option('matchup_mouse_enabled', 1)
-
-  call s:init_option('matchup_surround_enabled', 0)
-
-  call s:init_option('matchup_where_enabled', 1)
-  call s:init_option('matchup_where_separator', '')
-
-  call s:init_option('matchup_matchpref', {})
-endfunction
-
-function! s:init_option(option, default)
-  if !has_key(g:, a:option)
-    let g:[a:option] = a:default
-  endif
 endfunction
 
 function! s:init_modules()
