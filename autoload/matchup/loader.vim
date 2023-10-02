@@ -8,13 +8,7 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 function! matchup#loader#init_module() abort " {{{1
-  augroup matchup_filetype
-    au!
-    autocmd FileType * call matchup#loader#init_buffer()
-    if g:matchup_delim_start_plaintext
-      autocmd BufWinEnter,CmdWinEnter * call matchup#loader#bufwinenter()
-    endif
-  augroup END
+  call luaeval('require"matchup.loader".init_module()')
 endfunction
 
 " }}}1

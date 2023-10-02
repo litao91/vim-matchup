@@ -13,64 +13,12 @@ let s:alpha = 2.0/(10+1)
 let g:matchup#perf#times = {}
 
 function! matchup#perf#tic(context)
-  let s:time_start[a:context] = reltime()
+  call luaeval('require"matchup.perf".tic(_A[1])', [a:context])
 endfunction
 
 function! matchup#perf#toc(context, state)
-  let l:elapsed = s:Reltimefloat(reltime(s:time_start[a:context]))
-
-  let l:key = a:context.'#'.a:state
-  if has_key(g:matchup#perf#times, l:key)
-    if l:elapsed > g:matchup#perf#times[l:key].maximum
-      let g:matchup#perf#times[l:key].maximum = l:elapsed
-    endif
-    let g:matchup#perf#times[l:key].last = l:elapsed
-    let g:matchup#perf#times[l:key].emavg = s:alpha*l:elapsed
-          \ + (1-s:alpha)*g:matchup#perf#times[l:key].emavg
-  else
-    let g:matchup#perf#times[l:key] = {
-          \ 'maximum' : l:elapsed,
-          \ 'emavg'   : l:elapsed,
-          \ 'last'    : l:elapsed,
-          \}
-  endif
+  call luaeval('require"matchup.perf".toc(_A[1], _A[2])', [a:context, a:state])
 endfunction
-
-function! s:sort_by_last(a, b)
-  let l:a = g:matchup#perf#times[a:a].last
-  let l:b = g:matchup#perf#times[a:b].last
-  return l:a == l:b ? 0 : l:a > l:b ? 1 : -1
-endfunction
-
-function! matchup#perf#show_times()
-  let l:keys = keys(g:matchup#perf#times)
-  let l:contexts = uniq(sort(map(copy(l:keys), 'split(v:val, "#")[0]')))
-  if empty(l:contexts)
-    echo 'no times'
-    return
-  end
-
-  echohl Title
-  echo printf('%42s%11s%17s', 'average', 'last', 'maximum')
-  echohl None
-  for l:c in l:contexts
-    echohl Special
-    echo '['.l:c.']'
-    echohl None
-    let l:states = filter(copy(l:keys), 'v:val =~# "^\\V'.l:c.'#"')
-    call sort(l:states, 's:sort_by_last')
-    for l:s in l:states
-      echo printf('  %-25s%12.2gms%12.2gms%12.2gms',
-            \ join(split(l:s,'#')[1:],'#'),
-            \ 1000*g:matchup#perf#times[l:s].emavg,
-            \ 1000*g:matchup#perf#times[l:s].last,
-            \ 1000*g:matchup#perf#times[l:s].maximum)
-    endfor
-  endfor
-endfunction
-
-command! MatchupShowTimes call matchup#perf#show_times()
-command! MatchupClearTimes let g:matchup#perf#times = {}
 
 let s:timeout = 0
 let s:timeout_enabled = 0
