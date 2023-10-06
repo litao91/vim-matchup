@@ -44,6 +44,17 @@ function! matchup#perf#timeout_check() " {{{1
   return s:timeout <= 0.0
 endfunction
 
+
+
+" function! s:reltimefloat(time) {{{1
+if exists('*reltimefloat')
+  let s:Reltimefloat = function('reltimefloat')
+else
+  function! s:Reltimefloat(time)
+    return str2float(reltimestr(a:time))
+  endfunction
+endif
+
 " }}}1
 
 let &cpo = s:save_cpo

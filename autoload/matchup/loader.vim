@@ -516,23 +516,23 @@ endfunction
 " }}}1
 function! s:init_delim_lists_fast(mps) abort " {{{1
   let l:lists = { 'delim_tex': { 'regex': [], 'regex_capture': [] } }
-
+  
   let l:sets = split(a:mps, ',')
   let l:seen = {}
-
+  
   for l:s in l:sets
     if l:s =~# '^\s*$' | continue | endif
-
+  
     if l:s ==# '[:]' || l:s ==# '\[:\]'
       let l:s = '\[:]'
     endif
-
+  
     if has_key(l:seen, l:s) | continue | endif
     let l:seen[l:s] = 1
-
+  
     let l:words = split(l:s, ':')
     if len(l:words) < 2 | continue | endif
-
+  
     call add(l:lists.delim_tex.regex, {
       \ 'open'     : l:words[0],
       \ 'close'    : l:words[-1],
@@ -553,9 +553,9 @@ function! s:init_delim_lists_fast(mps) abort " {{{1
       \ 'extra_info' : { 'has_zs': 0, },
       \})
   endfor
-
+  
   " TODO if this is empty!
-
+  
   " generate combined lists
   let l:lists.delim_all = {}
   let l:lists.all = {}
@@ -563,7 +563,7 @@ function! s:init_delim_lists_fast(mps) abort " {{{1
     let l:lists.delim_all[l:k] = l:lists.delim_tex[l:k]
     let l:lists.all[l:k] = l:lists.delim_all[l:k]
   endfor
-
+  
   return l:lists
 endfunction
 
