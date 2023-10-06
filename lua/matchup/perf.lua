@@ -97,4 +97,28 @@ vim.api.nvim_create_user_command("MatchupClearTimes", function()
 	times = {}
 end, { nargs = 0, range = 1 })
 
+local timeout = 0
+local timeout_enabled = false
+local timeout_pulse_time = vim.fn.reltime()
+
+function M.timeout()
+	return vim.fn.float2nr(timeout)
+end
+
+function M.timeout_start(to)
+	timeout = to
+	timeout_enabled = (to == 0)
+	timeout_pulse_time = vim.fn.reltime()
+end
+
+function M.timeout_check()
+	if not timeout_enabled then
+		return false
+	end
+	local elapsed = 1000.0 * vim.fn.reltimefloat(vim.fn.reltime(timeout_pulse_time))
+	timeout = timeout - elapsed
+	timeout_pulse_time = vim.fn.reltime()
+	return timeout <= 0.0
+end
+
 return M

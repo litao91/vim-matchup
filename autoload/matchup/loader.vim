@@ -175,7 +175,7 @@ function! s:init_delim_lists(no_words, filter_words) abort " {{{1
   endif
 
   if l:simple
-    return s:init_delim_lists_fast(l:match_words)
+    return luaeval('require"matchup.loader".init_delim_lists_fast(_A)', l:match_words)
   endif
 
   let l:sets = split(l:match_words, g:matchup#re#not_bslash.',')
@@ -183,7 +183,7 @@ function! s:init_delim_lists(no_words, filter_words) abort " {{{1
   if a:filter_words
     call filter(l:sets, 'v:val =~? "^[^a-zA-Z]\\{3,18\\}$"')
     if empty(l:sets)
-      return s:init_delim_lists_fast(l:match_words)
+      return luaeval('require"matchup.loader".init_delim_lists_fast(_A)', l:match_words)
     endif
   endif
 
@@ -289,8 +289,7 @@ function! s:init_delim_lists(no_words, filter_words) abort " {{{1
     for l:i in range(1, len(l:words)-1)
 
       " first get rid of the capture groups in this pattern
-      let l:words_backref[l:i] = matchup#loader#remove_capture_groups(
-            \ l:words_backref[l:i])
+      let l:words_backref[l:i] = luaeval("require'matchup.loader'.remove_capture_groups(_A)", l:words_backref[l:i])
 
       " get the necessary \1, \2, etc back-references
       let l:needed_groups = []
@@ -514,60 +513,6 @@ function! s:init_delim_lists(no_words, filter_words) abort " {{{1
 endfunction
 
 " }}}1
-function! s:init_delim_lists_fast(mps) abort " {{{1
-  let l:lists = { 'delim_tex': { 'regex': [], 'regex_capture': [] } }
-  
-  let l:sets = split(a:mps, ',')
-  let l:seen = {}
-  
-  for l:s in l:sets
-    if l:s =~# '^\s*$' | continue | endif
-  
-    if l:s ==# '[:]' || l:s ==# '\[:\]'
-      let l:s = '\[:]'
-    endif
-  
-    if has_key(l:seen, l:s) | continue | endif
-    let l:seen[l:s] = 1
-  
-    let l:words = split(l:s, ':')
-    if len(l:words) < 2 | continue | endif
-  
-    call add(l:lists.delim_tex.regex, {
-      \ 'open'     : l:words[0],
-      \ 'close'    : l:words[-1],
-      \ 'mid'      : '',
-      \ 'mid_list' : [],
-      \ 'augments' : {},
-      \})
-    call add(l:lists.delim_tex.regex_capture, {
-      \ 'open'     : l:words[0],
-      \ 'close'    : l:words[-1],
-      \ 'mid'      : '',
-      \ 'mid_list' : [],
-      \ 'need_grp' : {},
-      \ 'grp_renu' : {},
-      \ 'aug_comp' : {},
-      \ 'has_zs'   : 0,
-      \ 'extra_list' : [{}, {}],
-      \ 'extra_info' : { 'has_zs': 0, },
-      \})
-  endfor
-  
-  " TODO if this is empty!
-  
-  " generate combined lists
-  let l:lists.delim_all = {}
-  let l:lists.all = {}
-  for l:k in ['regex', 'regex_capture']
-    let l:lists.delim_all[l:k] = l:lists.delim_tex[l:k]
-    let l:lists.all[l:k] = l:lists.delim_all[l:k]
-  endfor
-  
-  return l:lists
-endfunction
-
-" }}}1
 function! s:init_delim_regexes() abort " {{{1
   let l:re = {}
   let l:re.delim_all = {}
@@ -623,7 +568,7 @@ function! s:init_delim_regexes_generator(list_name) abort " {{{1
       endfor
     endfor
 
-    let l:regexes[l:key] = matchup#loader#remove_capture_groups(
+    let l:regexes[l:key] = luaeval("require'matchup.loader'.remove_capture_groups(_A)", 
           \ '\%(' . join(l:relist, '\|') . '\)')
   endfor
 
@@ -633,14 +578,9 @@ endfunction
 " }}}1
 
 function! matchup#loader#capture_group_replacement_order(cg) abort " {{{1
-  let l:order = reverse(sort(keys(a:cg), s:Nsort))
-  call sort(l:order, 's:capture_group_sort', a:cg)
-  return l:order
+  return luaeval('require"matchup.loader".capture_group_replacement_order(_A)', a:cg)
 endfunction
 
-function! s:capture_group_sort(a, b) abort dict
-  return self[a:b].depth - self[a:a].depth
-endfunction
 
 " }}}1
 function! matchup#loader#get_capture_groups(str, ...) abort " {{{1
@@ -696,12 +636,6 @@ else
           \ matchend(a:expr, a:pat, a:start)]
   endfunction
 endif
-
-" }}}1
-function! matchup#loader#remove_capture_groups(re) abort "{{{1
-  let l:sub_grp = '\(\\\@<!\(\\\\\)*\)\@<=\\('
-  return substitute(a:re, l:sub_grp, '\\%(', 'g')
-endfunction
 
 "}}}1
 

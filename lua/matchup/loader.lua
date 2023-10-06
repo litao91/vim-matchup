@@ -11,7 +11,6 @@ local regex_empty_str = vim.regex([[^\s*$]])
 
 function M.init_delim_lists_fast(mps)
 	local lists = { delim_tex = { regex = {}, regex_capture = {} } }
-
 	local sets = vim.fn.split(mps, ",")
 	local seen = {}
 
@@ -21,7 +20,7 @@ function M.init_delim_lists_fast(mps)
 				s = [=[\[:]]=]
 			end
 
-			if not vim.fn.has_key(seen, s) then
+			if not vim.tbl_contains(seen, s) then
 				seen[s] = 1
 
 				local words = vim.fn.split(s, ":")
@@ -51,7 +50,6 @@ function M.init_delim_lists_fast(mps)
 	end
 
 	-- TODO if this is empty!
-
 	-- generate combined lists
 	lists.delim_all = {}
 	lists.all = {}
@@ -63,7 +61,7 @@ function M.init_delim_lists_fast(mps)
 	return lists
 end
 
-local function init_dlim_lists(no_words, filter_words)
+local function init_delim_lists(no_words, filter_words)
 	local lists = {
 		delim_tex = {
 			regex = {},
@@ -104,7 +102,7 @@ local function init_dlim_lists(no_words, filter_words)
 	end
 
 	if simple then
-		return init_delim_lists_fast(match_words)
+		return M.init_delim_lists_fast(match_words)
 	end
 
 	local sets = vim.fn.split(match_words, vim.g["matchup#re#not_bslash"] .. ",")
@@ -112,7 +110,7 @@ local function init_dlim_lists(no_words, filter_words)
 	if filter_words then
 		vim.fn.filter(sets, [[v:val =~? "^[^a-zA-Z]\\{3,18\\}$"]])
 		if vim.fn.empty(sets) then
-			return init_delim_lists_fast(match_words)
+			return M.init_delim_lists_fast(match_words)
 		end
 	end
 
@@ -128,7 +126,7 @@ local function init_dlim_lists(no_words, filter_words)
 			seen[s] = true
 
 			if not regex_empty_str:match_str(s) then
-				words = vim.fn.split(s, vim.g["matchup#re#not_bslash" .. ":"])
+				local words = vim.fn.split(s, vim.g["matchup#re#not_bslash" .. ":"])
 
 				if #words >= 2 then
 					-- stores series-level information
@@ -136,7 +134,7 @@ local function init_dlim_lists(no_words, filter_words)
 
 					-- stores information for each word
 
-					extra_list = {}
+					local extra_list = {}
 
 					-- pre-process various \g{special} instructions
 					local replacement = {
@@ -214,10 +212,27 @@ local function init_dlim_lists(no_words, filter_words)
 							.. vim.fn.strpart(curaug, cg[j].pos[1])
 						augments[j] = curaug
 					end
+
+					for i = 2, #words do
+					end
 				end
 			end
 		end
 	end
+end
+
+function M.remove_capture_groups(re)
+	local sub_grp = [[\(\\\@<!\(\\\\\)*\)\@<=\\(]]
+	return vim.fn.substitute(re, sub_grp, [[\\%(]], "g")
+end
+
+function M.capture_group_replacement_order(cg)
+	local keys = vim.fn.keys(cg)
+	local order = vim.fn.reverse(vim.fn.sort(keys, "N"))
+	table.sort(order, function(a, b)
+		return b.depth < a.depth
+	end)
+	return order
 end
 
 local function init_buffer_lua()

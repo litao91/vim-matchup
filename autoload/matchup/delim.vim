@@ -709,8 +709,8 @@ function! s:get_matching_delims(down, stopline) dict abort " {{{1
   endif
 
   " turn \(\) into \%(\) for searchpairpos
-  let l:open  = matchup#loader#remove_capture_groups(l:open)
-  let l:close = matchup#loader#remove_capture_groups(l:close)
+  let l:open  = luaeval("require'matchup.loader'.remove_capture_groups(_A)", l:open)
+  let l:close = luaeval("require'matchup.loader'.remove_capture_groups(_A)", l:close)
 
   " fill in necessary back-references
   let l:open = matchup#delim#fill_backrefs(l:open, self.groups, 0)
@@ -809,7 +809,7 @@ function! s:get_matching_delims(down, stopline) dict abort " {{{1
   call matchup#perf#toc('get_matching_delims', 'get_matches')
 
   " fill in additional groups
-  let l:mids = matchup#loader#remove_capture_groups(self.regexone.mid)
+  let l:mids = luaeval("require'matchup.loader'.remove_capture_groups(_A)", self.regexone.mid)
   let l:mids = matchup#delim#fill_backrefs(l:mids, self.groups, 1)
 
   " if there are no mids, we're done
