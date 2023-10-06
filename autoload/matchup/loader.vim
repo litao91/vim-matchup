@@ -136,6 +136,7 @@ let s:match_word_cache = {}
 " }}}1
 
 function! s:init_delim_lists(no_words, filter_words) abort " {{{1
+  call luaeval('require"matchup.loader".init_delim_lists(_A[1], _A[2])', [a:no_words, a:filter_words])
   let l:lists = {
         \ 'delim_tex': {
         \   'regex': [],

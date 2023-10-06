@@ -61,7 +61,7 @@ function M.init_delim_lists_fast(mps)
 	return lists
 end
 
-local function init_delim_lists(no_words, filter_words)
+function M.init_delim_lists(no_words, filter_words)
 	local lists = {
 		delim_tex = {
 			regex = {},
@@ -98,7 +98,7 @@ local function init_delim_lists(no_words, filter_words)
 
 	local mps = vim.fn.escape(vim.bo.matchpairs, "[$^.*~\\/?]")
 	if vim.b.matchup_delim_nomatchpairs and not vim.fn.empty(mps) then
-		local match_words = match_words .. (simple and "" or ",") .. mps
+		match_words = match_words .. (simple and "" or ",") .. mps
 	end
 
 	if simple then
